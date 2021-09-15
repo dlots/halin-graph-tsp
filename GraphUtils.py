@@ -64,3 +64,7 @@ def draw_weighted_graph(graph):
     weights = get_edge_attributes(graph, 'weight')
     draw_networkx_edge_labels(graph, pos, weights)
     plt.show()
+
+def draw_graph(graph):
+    draw(graph)
+    plt.show()

@@ -1,4 +1,4 @@
-from GraphUtils import draw_weighted_graph
+from GraphUtils import draw_weighted_graph, draw_graph
 
 
 class StoredFan:
@@ -16,16 +16,20 @@ class StoredFan:
 
 
 class HalinGraphTspSolver:
-    def __init__(self, graph, tree, center_node=0):
+    def __init__(self):
+        self.graph = None
+        self.tree = None
+        self.center_node = None
+        self.fan_list = []
+        self.solution = None
+        self.solution_cost = 0
+        self.debug_counter = 0
+
+    def set_graph(self, graph, tree, center_node=0):
+        self.__init__()
         self.graph = graph
         self.tree = tree
         self.center_node = center_node
-        self.fan_list = []
-        self.path = []
-        self.path_length = 0
-        self.debug_counter = 0
-        self.solution = None
-        self.solution_cost = 0
 
     def get_edge_cost(self, edge):
         return self.graph[edge[0]][edge[1]]['weight']
@@ -71,7 +75,8 @@ class HalinGraphTspSolver:
         cost_of_path_through_center_and_side_1 = self.cost_center_and_side_edge_path(cycle_cost, fan_center,
                                                                                      opposite_side_edge=side_edges[0])
 
-        cost_of_path_through_side_edges, min_delta_edge = self.cost_two_side_edges_path(cycle_cost, cycle_edges, fan_center)
+        cost_of_path_through_side_edges, min_delta_edge = self.cost_two_side_edges_path(cycle_cost, cycle_edges,
+                                                                                        fan_center)
 
         new_cost_side_0 = self.get_edge_cost(side_edges[0]) \
                           + (cost_of_path_through_side_edges + cost_of_path_through_center_and_side_0
@@ -98,8 +103,8 @@ class HalinGraphTspSolver:
         self.graph[fan_center][fan_center_parent]['weight'] = new_cost_center
 
         # if self.debug_counter == 0:
-        #     draw_weighted_graph(self.graph)
-        #     self.debug_counter += 1
+        # draw_graph(self.graph)
+        # self.debug_counter += 1
 
     def restore_fan(self):
         #draw_weighted_graph(self.graph)

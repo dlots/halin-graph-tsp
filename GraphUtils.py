@@ -3,11 +3,17 @@ from networkx.generators.classic import full_rary_tree
 from networkx import draw, draw_planar
 from networkx import get_edge_attributes
 from networkx import draw_networkx_edge_labels, spring_layout, planar_layout
+from networkx.algorithms import check_planarity
 from random import randint
 
 
 def generate_weighted_halin_graph(r=3, nodes=10, min_weight=1, max_weight=10):
     tree = full_rary_tree(r, nodes)
+    last_node = len(tree) - 1
+    last_node_parent = next(tree.neighbors(last_node))
+    if tree.degree(last_node_parent) == 2:
+        return None, None
+
     graph = tree.copy()
 
     leaves = [node for node in graph.nodes() if graph.degree(node) == 1]
@@ -50,12 +56,32 @@ def generate_weighted_halin_graph(r=3, nodes=10, min_weight=1, max_weight=10):
     return graph, tree
 
 
+def find_cycle_in_halin_graph(graph):
+    cycle = []
+    is_planar, PE = check_planarity(graph)
+    #draw_weighted_graph(graph)
+    for edge in PE.edges:
+        face = PE.traverse_face(*edge)
+        if len(face) > len(cycle):
+            cycle = face
+    return cycle
+
+
 def print_adjacency_list(graph):
     for node in graph:
         print(node, end=': ')
         for adj in graph.adj[node]:
             print(adj, end=',')
         print()
+
+
+def nx_to_adj_list(graph):
+    adj_list = []
+    for node in graph:
+        adj_list.append([])
+        for adj in graph.adj[node]:
+            adj_list[node].append([adj, graph[node][adj]['weight']])
+    return adj_list
 
 
 def draw_weighted_graph(graph):
@@ -65,6 +91,7 @@ def draw_weighted_graph(graph):
     draw_networkx_edge_labels(graph, pos, weights)
     plt.show()
 
+
 def draw_graph(graph):
-    draw(graph)
+    draw(graph, with_labels=True)
     plt.show()

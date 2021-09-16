@@ -1,9 +1,12 @@
 from HalinGraphTspSolver import HalinGraphTspSolver
-from GraphUtils import generate_weighted_halin_graph, draw_weighted_graph, draw_graph
-from networkx.algorithms.planarity import check_planarity
+from GraphUtils import generate_weighted_halin_graph, draw_weighted_graph, draw_graph, find_cycle_in_halin_graph
+from GraphUtils import nx_to_adj_list
 from networkx.algorithms.approximation import traveling_salesman_problem
 import itertools
-
+import time
+import matplotlib.pyplot as plt
+from sklearn.preprocessing import normalize
+from math import exp
 
 def naive_tsp(graph):
     permutations = [list(i) for i in itertools.permutations(graph.nodes)]
@@ -26,24 +29,75 @@ def naive_tsp(graph):
     return min_cycle, min_cost
 
 
-def find_cycle_in_halin_graph(graph):
-    cycle = []
-    is_planar, PE = check_planarity(graph)
-    draw_weighted_graph(graph)
-    for edge in PE.edges:
-        face = PE.traverse_face(*edge)
-        if len(face) > len(cycle):
-            cycle = face
-    return cycle
-
-
 if __name__ == '__main__':
-    G, T = generate_weighted_halin_graph()
-    #print(find_cycle_in_halin_graph(G))
-    draw_graph(T)
+    solver = HalinGraphTspSolver()
+    G, T = generate_weighted_halin_graph(nodes=7)
     draw_graph(G)
-    #draw_weighted_graph(T)
-    #draw_weighted_graph(G)
-    #solver = HalinGraphTspSolver(G, T)
+    print(nx_to_adj_list(G))
+    ns = []
+    times = []
+    if False:
+        for n in range(4, 11):
+            G, T = generate_weighted_halin_graph(nodes=n)
+            # draw_graph(T)
+            # draw_graph(G)
+            #draw_weighted_graph(T)
+            #draw_weighted_graph(G)
+            if not G:
+                continue
+            num_edges = G.number_of_edges()
+            solver.set_graph(G, T)
+            start = time.time()
+            naive_tsp(G)
+            elapsed = time.time() - start
+            #ns.append(n)
+            ns.append(num_edges)
+            times.append(elapsed)
+            #print(n, elapsed)
+            print(n, num_edges, elapsed)
+        #plt.show()
+        ns_exp = [exp(n) for n in ns]
+        to_normalize = [times, ns_exp]
+        normalized = normalize(to_normalize)
+        plt.plot(ns, times, color='red')
+        plt.show()
+        plt.plot(ns, ns_exp, color='green')
+        plt.show()
+        plt.plot(ns, normalized[0], color='red')
+        plt.plot(ns, normalized[1], color='green')
+        plt.show()
+    if False:
+        for n in range(4, 6000, 100):
+            G, T = generate_weighted_halin_graph(nodes=n)
+            # draw_graph(T)
+            # draw_graph(G)
+            #draw_weighted_graph(T)
+            #draw_weighted_graph(G)
+            if not G:
+                continue
+            num_edges = G.number_of_edges()
+            solver.set_graph(G, T)
+            start = time.time()
+            #find_cycle_in_halin_graph(G)
+            result = solver.solve()
+            elapsed = time.time() - start
+            #ns.append(n)
+            ns.append(num_edges)
+            times.append(elapsed)
+            #print(n, elapsed)
+            print(n, num_edges, elapsed)
+        #plt.show()
+        ns_square = [n*n for n in ns]
+        to_normalize = [times, ns_square]
+        normalized = normalize(to_normalize)
+        plt.plot(ns, times, color='red')
+        plt.show()
+        plt.plot(ns, ns_square, color='green')
+        plt.show()
+        plt.plot(ns, normalized[0], color='red')
+        plt.plot(ns, normalized[1], color='green')
+        plt.show()
+    #print(find_cycle_in_halin_graph(G))
+
     #print(naive_tsp(G))
     #print(solver.solve())
